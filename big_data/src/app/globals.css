@@ -1,0 +1,57 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+@layer utilities {
+  .bg-news-soft {
+    background: linear-gradient(186deg,
+        snow -1.9%,
+        rgba(255, 227, 227, 0.23) 30.62%,
+        rgba(255, 190, 190, 0) 98.17%),
+      #fff;
+  }
+
+  .bg-qr {
+    background: linear-gradient(296deg,
+        rgba(243, 236, 242, 0.8) 33.56%,
+        rgba(232, 237, 243, 0.8) 92.44%),
+      #fff;
+  }
+
+  @keyframes progress {
+    from {
+      width: 0%;
+    }
+
+    to {
+      width: 100%;
+    }
+  }
+
+  @keyframes progress-thumb {
+    from {
+      left: 0%;
+    }
+
+    to {
+      left: 100%;
+    }
+  }
+
+  .scale-in {
+    transform-origin: center;
+    animation: 0.3s ease 0s 1 normal forwards running qtip-animation;
+  }
+
+  @keyframes qtip-animation {
+    from {
+      opacity: 0;
+      transform: scale(0.3);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+}
