@@ -1,0 +1,8 @@
+kneed
+scikit-learn
+numpy
+scipy
+underthesea
+sentence-transformers
+hdbscan
+umap-learn
