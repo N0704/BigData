@@ -2,8 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { formatDistanceToNowStrict } from "date-fns";
 import { vi } from "date-fns/locale";
 import Link from "next/link";
-import { decodeHtml } from "@/lib/utils";
-import TextToSpeech from "@/components/shared/TextToSpeech";
+import { decodeHtml, trackView } from "@/lib/utils";
 import NewsPreviewCard from "./NewsPreviewCard";
 
 const NewsCard = ({ article }) => {
@@ -29,6 +28,10 @@ const NewsCard = ({ article }) => {
     setIsHovered(false);
   };
 
+  const handleView = () => {
+    trackView(article.url);
+  };
+
   const timeAgo = article.published_at
     ? formatDistanceToNowStrict(new Date(article.published_at), {
       addSuffix: true,
@@ -48,7 +51,10 @@ const NewsCard = ({ article }) => {
     daysAgo > 30 ? publishedDate.toLocaleDateString("vi-VN") : timeAgo;
 
   return (
-    <article className={`flex items-start gap-5 py-5 cursor-pointer relative group ${isHovered ? 'z-50' : 'z-0'}`}>
+    <article
+      onClick={handleView}
+      className={`flex items-start gap-5 py-5 cursor-pointer relative group ${isHovered ? 'z-50' : 'z-0'}`}
+    >
       <div className="flex-1 flex flex-col gap-2">
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <span className="font-medium text-gray-700">

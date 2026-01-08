@@ -1,11 +1,34 @@
-"use client";
-import { decodeHtml } from '@/lib/utils';
-import { useState, useRef } from 'react';
-import NewsPreviewCard from './NewsPreviewCard';
+import { decodeHtml, trackView } from "@/lib/utils";
+import { useState, useRef, useEffect } from "react";
+import NewsPreviewCard from "./NewsPreviewCard";
+import { RotateCw } from "lucide-react";
 
 const TrendingNews = ({ clusters = [] }) => {
+  const [displayedClusters, setDisplayedClusters] = useState([]);
   const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const hoverTimeoutRef = useRef(null);
+
+  // Khởi tạo 10 tin đầu tiên
+  useEffect(() => {
+    if (clusters.length > 0) {
+      setDisplayedClusters(clusters.slice(0, 10));
+    }
+  }, [clusters]);
+
+  const handleRefresh = () => {
+    if (clusters.length <= 10) return;
+
+    setIsRefreshing(true);
+
+    // Đợi hiệu ứng mờ đi
+    setTimeout(() => {
+      // Lấy ngẫu nhiên 10 tin từ danh sách
+      const shuffled = [...clusters].sort(() => 0.5 - Math.random());
+      setDisplayedClusters(shuffled.slice(0, 10));
+      setIsRefreshing(false);
+    }, 300);
+  };
 
   const handleMouseEnter = (index) => {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
@@ -26,12 +49,16 @@ const TrendingNews = ({ clusters = [] }) => {
     setHoveredIndex(null);
   };
 
-  const hotList = clusters.map(c => ({
+  const handleView = (item) => {
+    trackView(item.url);
+  };
+
+  const hotList = displayedClusters.map((c) => ({
     id: c.cluster_id,
     title: c.title,
     url: c.url,
-    tag: c.size > 2 ? "Nóng" : null,
-    original: c
+    tag: c.size > 2 ? "Nóng" : "Mới",
+    original: c,
   }));
 
   return (
@@ -42,19 +69,25 @@ const TrendingNews = ({ clusters = [] }) => {
           <span>🔥</span>
           <span>Bảng xếp hạng tin nóng</span>
         </div>
-        <button className="text-xs text-gray-400 hover:text-[#ff4d4f]">
+        <button
+          onClick={handleRefresh}
+          disabled={clusters.length <= 10 || isRefreshing}
+          className="text-xs text-gray-400 hover:text-[#f04142] flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
+        >
+          <RotateCw size={12} className={`${isRefreshing ? 'animate-spin' : ''}`} />
           Đổi tin khác
         </button>
       </div>
 
       {/* List */}
-      <ul className="px-4 py-2">
+      <ul className={`px-4 py-2 transition-opacity duration-300 ${isRefreshing ? 'opacity-0' : 'opacity-100'}`}>
         {hotList.map((item, index) => (
           <li
             key={item.id}
-            className="flex items-start gap-3 py-2 group relative"
+            className="flex items-start gap-3 py-2 group relative cursor-pointer"
             onMouseEnter={() => handleMouseEnter(index)}
             onMouseLeave={handleMouseLeave}
+            onClick={() => handleView(item)}
           >
             {/* Rank */}
             <span
@@ -106,7 +139,6 @@ const TrendingNews = ({ clusters = [] }) => {
             )}
           </li>
         ))}
-
       </ul>
     </aside>
   );

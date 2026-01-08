@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import NewsCard from "./NewsCard";
-import { getLatestNews, getNewsByCategorySlug, getNewsByClusterId, getHotClusters } from "@/lib/actions/news";
+import { getLatestNews, getNewsByCategorySlug, getNewsByClusterId, getRecommendedClusters } from "@/lib/actions/news";
 
-const NewsFeed = ({ initialNews = [], categorySlug = null, clusterId = null }) => {
+const NewsFeed = ({ initialNews = [], categorySlug = null, clusterId = null, user = null }) => {
     const [news, setNews] = useState(initialNews);
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -24,7 +24,8 @@ const NewsFeed = ({ initialNews = [], categorySlug = null, clusterId = null }) =
                 } else if (categorySlug) {
                     freshNews = await getNewsByCategorySlug(categorySlug, 1);
                 } else {
-                    freshNews = await getHotClusters(20, 0);
+                    // Sử dụng hệ thống đề cử dựa trên hành vi đọc
+                    freshNews = await getRecommendedClusters(user?.id || null, 20, 0);
                 }
                 setNews(freshNews);
                 setPage(1);
@@ -59,7 +60,8 @@ const NewsFeed = ({ initialNews = [], categorySlug = null, clusterId = null }) =
             } else if (categorySlug) {
                 newNews = await getNewsByCategorySlug(categorySlug, nextPage);
             } else {
-                newNews = await getHotClusters(20, (nextPage - 1) * 20);
+                // Sử dụng hệ thống đề cử cho phân trang
+                newNews = await getRecommendedClusters(user?.id || null, 20, (nextPage - 1) * 20);
             }
 
             if (newNews.length === 0) {

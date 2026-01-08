@@ -29,6 +29,31 @@ def init_db():
         slug TEXT UNIQUE NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT UNIQUE,
+    name TEXT,
+    avatar TEXT,
+    provider TEXT, -- local / google / facebook
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+    CREATE TABLE IF NOT EXISTS otps (
+        email TEXT PRIMARY KEY,
+        otp TEXT NOT NULL,
+        expires_at DATETIME NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        user_id INTEGER NOT NULL,
+        expires_at DATETIME NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+
     CREATE TABLE IF NOT EXISTS clusters (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         category_id INTEGER NOT NULL,
@@ -53,10 +78,41 @@ def init_db():
         category_id INTEGER,
         cluster_id INTEGER,
         embedding BLOB NOT NULL,
+        report_count INTEGER DEFAULT 0,
+        view_count INTEGER DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (category_id) REFERENCES categories(id),
         FOREIGN KEY (cluster_id) REFERENCES clusters(id)
             ON DELETE SET NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS reports (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        news_id INTEGER NOT NULL,
+        user_id INTEGER, -- NULL nếu report ẩn danh
+        fingerprint TEXT, -- Lưu ID trình duyệt để hạn chế spam ẩn danh
+        reason TEXT NOT NULL, -- fake, clickbait, copyright, error
+        description TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (news_id) REFERENCES news(id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE SET NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS read_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER, -- NULL nếu xem ẩn danh
+        news_id INTEGER, 
+        url TEXT,
+        read_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        processed INTEGER DEFAULT 0, -- 0: chưa tính vào hot_score, 1: đã tính
+
+    FOREIGN KEY (user_id) REFERENCES users(id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (news_id) REFERENCES news(id)
+        ON DELETE CASCADE
     );
 
     CREATE INDEX IF NOT EXISTS idx_clusters_hot
@@ -73,5 +129,20 @@ def init_db():
     -- Tìm bài theo URL
     CREATE INDEX IF NOT EXISTS idx_news_url
         ON news(url);
+
+    CREATE INDEX IF NOT EXISTS idx_reports_news
+        ON reports(news_id);
+
+    CREATE INDEX IF NOT EXISTS idx_reports_user
+        ON reports(user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_read_logs_user
+        ON read_logs(user_id);
+
+    CREATE INDEX IF NOT EXISTS idx_read_logs_news
+        ON read_logs(news_id);
+    
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_reports_unique
+        ON reports(news_id, user_id);
     """)
     conn.commit()

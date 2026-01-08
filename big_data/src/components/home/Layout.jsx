@@ -10,7 +10,7 @@ import NewsFeed from "./NewsFeed";
 import StickyHeader from "./StickyHeader";
 import Footer from "./Footer";
 
-const Layout = ({ categories = [], news = [], clusters = [], hotToday = [] }) => {
+const Layout = ({ user, categories = [], news = [], clusters = [], hotToday = [] }) => {
   const [activeCategory, setActiveCategory] = useState(null);
   const searchParams = useSearchParams();
   const clusterId = searchParams.get("cluster_id");
@@ -26,6 +26,7 @@ const Layout = ({ categories = [], news = [], clusters = [], hotToday = [] }) =>
   return (
     <>
       <StickyHeader
+        user={user}
         categories={categories}
         activeSlug={activeCategory}
         onCategoryChange={handleCategoryChange}
@@ -43,6 +44,7 @@ const Layout = ({ categories = [], news = [], clusters = [], hotToday = [] }) =>
             initialNews={news}
             categorySlug={activeCategory}
             clusterId={clusterId}
+            user={user}
           />
         </div>
         <div className="w-79.5 shrink-0">

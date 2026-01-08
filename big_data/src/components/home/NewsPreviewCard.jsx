@@ -1,12 +1,27 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { formatDistanceToNowStrict } from "date-fns";
 import { vi } from "date-fns/locale";
-import { decodeHtml } from "@/lib/utils";
+import { decodeHtml, trackView } from "@/lib/utils";
 import TextToSpeech from "@/components/shared/TextToSpeech";
 import Link from "next/link";
+import { Flag } from "lucide-react";
+import ReportModal from "./ReportModal";
 
 const NewsPreviewCard = ({ article, onMouseEnter, onMouseLeave, onClose }) => {
+    const [showReportModal, setShowReportModal] = useState(false);
+    const [isReported, setIsReported] = useState(false);
+
+    useEffect(() => {
+        if (article) {
+            const history = JSON.parse(localStorage.getItem('reported_news') || '[]');
+            if (history.includes(article.news_id || article.id)) {
+                setIsReported(true);
+            }
+        }
+    }, [article]);
+
     if (!article) return null;
 
     const timeAgo = article.published_at
@@ -17,6 +32,36 @@ const NewsPreviewCard = ({ article, onMouseEnter, onMouseLeave, onClose }) => {
         }).replace("khoảng ", "")
         : "Vừa xong";
 
+    const handleReportClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isReported) {
+            setShowReportModal(true);
+        }
+    };
+
+    const handleReportClose = (success) => {
+        setShowReportModal(false);
+        if (success) {
+            setIsReported(true);
+        }
+    };
+
+    useEffect(() => {
+        if (!article) return;
+
+        // Nếu người dùng xem preview quá 2 giây, tính là 1 lượt đọc
+        const timer = setTimeout(() => {
+            trackView(article.url);
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, [article.url]);
+
+    const handleView = () => {
+        trackView(article.url);
+    };
+
     return (
         <div
             className="w-[380px] bg-white rounded-xl shadow-2xl overflow-hidden "
@@ -24,7 +69,7 @@ const NewsPreviewCard = ({ article, onMouseEnter, onMouseLeave, onClose }) => {
             onMouseLeave={onMouseLeave}
         >
             {/* Image Section */}
-            <div className="relative h-56 w-full">
+            <div className="relative h-56 w-full group">
                 {article.image_url ? (
                     <img
                         src={article.image_url}
@@ -38,6 +83,17 @@ const NewsPreviewCard = ({ article, onMouseEnter, onMouseLeave, onClose }) => {
                 )}
                 <div className="absolute inset-0 bg-linear-to-t from-white via-transparent to-transparent" />
 
+                {/* Report Button */}
+                <button
+                    onClick={handleReportClick}
+                    className={`absolute top-3 right-3 p-2 rounded-full transition-all z-20 shadow-sm ${isReported
+                        ? 'bg-red-600 text-white cursor-default opacity-100'
+                        : 'bg-black/20 text-white hover:bg-red-600 opacity-0 group-hover:opacity-100 backdrop-blur-md'
+                        }`}
+                    title={isReported ? "Đã báo cáo" : "Báo cáo bài viết"}
+                >
+                    <Flag size={16} fill={isReported ? "white" : "none"} />
+                </button>
             </div>
 
             {/* Content Section */}
@@ -45,6 +101,7 @@ const NewsPreviewCard = ({ article, onMouseEnter, onMouseLeave, onClose }) => {
                 <a
                     href={article.url}
                     target="_blank"
+                    onClick={handleView}
                     className="text-lg font-medium text-gray-900 leading-relaxed hover:opacity-80">
                     {decodeHtml(article.title)}
                 </a>
@@ -74,10 +131,20 @@ const NewsPreviewCard = ({ article, onMouseEnter, onMouseLeave, onClose }) => {
                     <TextToSpeech
                         newsId={article.news_id || article.id}
                         article={article}
-                        onPlayStart={onClose}
+                        onPlayStart={() => {
+                            handleView();
+                            if (onClose) onClose();
+                        }}
                     />
                 </div>
             </div>
+
+            {showReportModal && (
+                <ReportModal
+                    newsId={article.news_id || article.id}
+                    onClose={handleReportClose}
+                />
+            )}
         </div>
     );
 };

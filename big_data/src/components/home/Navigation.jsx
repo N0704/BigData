@@ -2,24 +2,34 @@
 
 import { ChevronDown } from "lucide-react";
 
-const Navigation = ({ categories = [], activeSlug = null, onCategoryChange, className = "", listClassName = "justify-between" }) => {
+const Navigation = ({
+  categories = [],
+  activeSlug = null,
+  onCategoryChange,
+  className = "",
+  listClassName = "justify-between",
+}) => {
   const firstThree = categories.slice(0, 3);
   const others = categories.slice(3);
-  const activeInOthers = others.find(c => c.slug === activeSlug);
+  const activeInOthers = others.find((c) => c.slug === activeSlug);
   const fourthCategory = activeInOthers || categories[3];
-  const displayCategories = fourthCategory ? [...firstThree, fourthCategory] : firstThree;
+  const displayCategories = fourthCategory
+    ? [...firstThree, fourthCategory]
+    : firstThree;
 
   const navItems = [
     { id: "latest", label: "Mới nhất", dot: true, slug: "latest" },
     { id: "recommend", label: "Đề xuất", slug: null },
-    ...displayCategories.map(c => ({
+    ...displayCategories.map((c) => ({
       id: c.id,
       slug: c.slug,
       label: c.name,
     })),
   ];
 
-  const moreItems = categories.filter(c => !displayCategories.find(dc => dc.slug === c.slug));
+  const moreItems = categories.filter(
+    (c) => !displayCategories.find((dc) => dc.slug === c.slug)
+  );
 
   const handleCategoryClick = (slug) => {
     if (onCategoryChange) {
@@ -34,11 +44,12 @@ const Navigation = ({ categories = [], activeSlug = null, onCategoryChange, clas
           <li className="relative" key={item.id}>
             <button
               onClick={() => handleCategoryClick(item.slug)}
-              className={`py-1 cursor-pointer relative ${(item.id === "recommend" && !activeSlug) ||
+              className={`py-1 cursor-pointer relative ${
+                (item.id === "recommend" && !activeSlug) ||
                 (item.slug && item.slug === activeSlug)
-                ? "text-[#ff2d2d]"
-                : "hover:text-black hover:opacity-60"
-                }`}
+                  ? "text-[#ff2d2d]"
+                  : "hover:text-black hover:opacity-60"
+              }`}
             >
               {item.label}
 
@@ -74,8 +85,11 @@ const Navigation = ({ categories = [], activeSlug = null, onCategoryChange, clas
               <button
                 key={item.slug}
                 onClick={() => handleCategoryClick(item.slug)}
-                className={`whitespace-nowrap text-left ${item.slug === activeSlug ? "text-[#ff2d2d]" : "hover:text-[#ff2d2d]"
-                  }`}
+                className={`whitespace-nowrap text-left ${
+                  item.slug === activeSlug
+                    ? "text-[#ff2d2d]"
+                    : "hover:text-[#ff2d2d]"
+                }`}
               >
                 {item.name}
               </button>

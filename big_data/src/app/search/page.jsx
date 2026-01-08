@@ -2,6 +2,7 @@
 import SearchHeader from "@/components/search/SearchHeader";
 import SearchResults from "@/components/search/SearchResults";
 import { getHotClustersTrending } from "@/lib/actions/news";
+import { getCurrentUser } from "@/lib/auth";
 
 export const metadata = {
     title: "Tìm kiếm - Tin tức",
@@ -9,11 +10,12 @@ export const metadata = {
 };
 
 export default async function SearchPage() {
-    const hotClusters = await getHotClustersTrending(10);
+    const user = await getCurrentUser();
+    const hotClusters = await getHotClustersTrending(30);
 
     return (
         <div>
-            <SearchHeader />
+            <SearchHeader user={user} />
             <SearchResults hotClusters={hotClusters} />
         </div>
     );

@@ -1,8 +1,8 @@
 "use client";
-import { decodeHtml } from '@/lib/utils';
-import { useState, useRef } from 'react';
-import Link from 'next/link';
-import NewsPreviewCard from './NewsPreviewCard';
+import { decodeHtml, trackView } from "@/lib/utils";
+import { useState, useRef } from "react";
+import Link from "next/link";
+import NewsPreviewCard from "./NewsPreviewCard";
 
 export default function TopNews({ hotToday = [] }) {
   const [hoveredIndex, setHoveredIndex] = useState(null);
@@ -27,19 +27,25 @@ export default function TopNews({ hotToday = [] }) {
     setHoveredIndex(null);
   };
 
+  const handleView = (item) => {
+    trackView(item.url);
+  };
+
   // Ngày hiện tại đẹp kiểu Việt Nam
-  const currentDate = new Date().toLocaleDateString('vi-VN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    weekday: 'long',
-  }).replace(/,/g, ' ·');
+  const currentDate = new Date()
+    .toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      weekday: "long",
+    })
+    .replace(/,/g, " ·");
 
   return (
     <div className="py-5 px-8 bg-news-soft rounded-lg">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
-        <span className="bg-[#ff4d4f] text-white text-sm font-semibold px-2 py-0.5 rounded">
+        <span className="bg-[#ff2d2d] text-white text-sm font-semibold px-2 py-0.5 rounded">
           Tin nổi bật hôm nay
         </span>
         <span className="text-gray-400 text-sm">{currentDate}</span>
@@ -51,13 +57,15 @@ export default function TopNews({ hotToday = [] }) {
           {hotToday.map((item, index) => (
             <li
               key={item.cluster_id || item.news_id}
-              className="flex items-start gap-3 relative"
+              className="flex items-start gap-3 relative cursor-pointer"
               onMouseEnter={() => handleMouseEnter(index)}
               onMouseLeave={handleMouseLeave}
+              onClick={() => handleView(item)}
             >
               <span className="mt-2 w-1 h-1 bg-gray-400 rounded-full shrink-0" />
               <Link
-                href={item.url} target="_blank"
+                href={item.url}
+                target="_blank"
                 className="text-[15px] text-gray-800 leading-relaxed hover:text-[#ff4d4f] transition-colors line-clamp-2"
               >
                 {decodeHtml(item.title)}
